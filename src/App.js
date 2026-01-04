@@ -1,25 +1,86 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import Home from "./pages/Home";
+import AboutUs from "./pages/AboutUs";
+import Services from "./pages/Services";
+import ContactUs from "./pages/ContactUs";
+import Feedback from "./pages/Feedback";
+import Login from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Navbar from "./components/Navbar";
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Login route - public */}
+          <Route path="/login" element={<Login />} />
+
+          {/* Protected routes - require authentication */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <Home />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <AboutUs />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/services"
+            element={
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <Services />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <ContactUs />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/feedback"
+            element={
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <Feedback />
+                </>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Redirect unknown routes to login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
-}
+};
 
 export default App;
