@@ -1,141 +1,122 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import "../styles/Login.css";
+import  "../styles/Login.css";
 
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [generalError, setGeneralError] = useState("");
+function App() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const [isLoginPage, setIsLoginPage] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Email/Mobile validation regex
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const mobilePattern = /^[0-9]{10}$/;
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [storedUser, setStoredUser] = useState(null);
 
-  const validateForm = () => {
-    const newErrors = {};
+  const [message, setMessage] = useState("");
 
-    // Validate Email/Mobile
-    if (!email.trim()) {
-      newErrors.email = "Email or Mobile Number is required";
-    } else if (!emailPattern.test(email) && !mobilePattern.test(email.replace(/\D/g, ""))) {
-      newErrors.email = "Enter a valid email or 10-digit mobile number";
+  // Redirect to home when successfully logged in
+  useEffect(() => {
+    if (isLoggedIn) {
+      const timer = setTimeout(() => {
+        navigate("/");
+      }, 1500); // Delay for 1.5 seconds to show success message
+      return () => clearTimeout(timer);
     }
+  }, [isLoggedIn, navigate]);
 
-    // Validate Password
-    if (!password.trim()) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setGeneralError("");
-
-    if (!validateForm()) {
+  
+  function handleSignup() {
+    if (username === "" || password === "") {
+      setMessage("All fields are required ");
       return;
     }
 
-    setLoading(true);
+    setStoredUser({ username, password });
+    setMessage("Signup successful..! Please login");
+    setUsername("");
+    setPassword("");
+    setIsLoginPage(true);
+  }
 
-    try {
-      // TODO: Replace with actual API call to your backend
-      // Example: const response = await fetch('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) })
-      
-      // Simulated API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Simulated validation - replace with real backend response
-      if (email === "test@example.com" && password === "password123") {
-        // Extract username from email
-        const username = email.split("@")[0];
-        
-        // Use AuthContext to login
-        login(email, username);
-
-        // Redirect to Home
-        navigate("/");
-      } else {
-        setGeneralError("Invalid email/mobile or password. Please try again.");
-      }
-    } catch (error) {
-      setGeneralError("An error occurred. Please try again later.");
-      console.error("Login error:", error);
-    } finally {
-      setLoading(false);
+  
+  function handleLogin() {
+    if (
+      storedUser &&
+      username === storedUser.username &&
+      password === storedUser.password
+    ) {
+      setIsLoggedIn(true);
+      setMessage("Login Success ");
+    } else {
+      setMessage("Invalid Username or Password ");
     }
-  };
+  }
+
+  
+  function handleLogout() {
+    setIsLoggedIn(false);
+    setUsername("");
+    setPassword("");
+    setMessage("Logged out successfully ");
+  }
 
   return (
-    <div className="login-container">
+    <div className="app-container">
       <div className="login-card">
-        <h1>Login</h1>
-        <p className="login-subtitle">Access your account securely</p>
+        {!isLoggedIn ? (
+          <>
+            <h2>{isLoginPage ? "Login" : "Sign Up"}</h2>
 
-        {generalError && <div className="error-banner">{generalError}</div>}
-
-        <form onSubmit={handleSubmit} noValidate>
-          {/* Email/Mobile Field */}
-          <div className="form-group">
-            <label htmlFor="email">Email or Mobile Number</label>
             <input
               type="text"
-              id="email"
-              placeholder="Enter your email or 10-digit mobile number"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={errors.email ? "input-error" : ""}
-              disabled={loading}
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
-            {errors.email && <span className="error-message">{errors.email}</span>}
-          </div>
 
-          {/* Password Field */}
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
             <input
               type="password"
-              id="password"
-              placeholder="Enter your password"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={errors.password ? "input-error" : ""}
-              disabled={loading}
             />
-            {errors.password && <span className="error-message">{errors.password}</span>}
-          </div>
 
-          {/* Login Button */}
-          <button
-            type="submit"
-            className="login-btn"
-            disabled={loading}
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+            {isLoginPage ? (
+              <>
+                <button style={{ cursor: "pointer", margin: "10px 0" }} onClick={handleLogin}>Login</button>
+                <p className="switch">
+                  New user?
+                  <span style={{ cursor: "pointer", color: "#667eea" }} onClick={() => setIsLoginPage(false)}>
+                    {" "}
+                    Sign up
+                  </span>
+                </p>
+              </>
+            ) : (
+              <>
+                <button style={{ cursor: "pointer", margin: "10px 0" }} onClick={handleSignup}>Sign Up</button>
+                <p className="switch">
+                  Already have an account?
+                  <span style={{ cursor: "pointer", color: "#667eea" }} onClick={() => setIsLoginPage(true)}>
+                    {" "}
+                    Login
+                  </span>
+                </p>
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <h2>Welcome, {storedUser.username} 😊</h2>
+            <button className="logout-btn" onClick={handleLogout}>
+              Logout
+            </button>
+          </>
+        )}
 
-        {/* Sign-up Link */}
-        <div className="signup-link">
-          Don't have an account? <a href="/signup">Sign up here</a>
-        </div>
-
-        {/* Demo Credentials Note */}
-        <div className="demo-note">
-          <small>Demo: Use email: test@example.com | password: password123</small>
-        </div>
+        <p className="msg">{message}</p>
       </div>
     </div>
   );
-};
+}
 
-export default Login;
+export default App;
